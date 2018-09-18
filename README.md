@@ -31,3 +31,12 @@ df = pd.read_csv("car.data"
   ,names=["buying","maint","doors","persons","lug_boot","safety","Decision"] #column names can either be defined in the source file or names parameter
 )
 ```
+
+# Prerequisites
+
+Pandas and numpy python libraries are used to load data sets in this repository. You might run the following commands to install these packages if you are going to use them first time.
+
+```
+pip install pandas
+pip install numpy
+```
