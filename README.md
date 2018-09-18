@@ -12,4 +12,16 @@ This is the repository of Decision Trees for Machine Learning online course. In 
 
 5- Random Forest - [Documentation](https://sefiks.com/2017/11/19/how-random-forests-can-keep-you-from-decision-tree/)
 
-To keep yourself updated, you might follow my personal blog https://sefiks.com/
+Just call the [decision.py](/python/decision.py) file to run the program. You might want to change the running algorithm. You just need to set algorithm variable.
+
+  algorithm = "ID3" #Please set this variable to ID3, C4.5, CART or Regression
+  
+Moreover, you might want to apply random forest. Please set this to True in this case.
+
+  enableRandomForest = False
+
+Finally, you can change the data set to build different decision trees. Just pass the file name, and its column names if it does not exist.
+
+  df = pd.read_csv("car.data"
+    ,names=["buying","maint","doors","persons","lug_boot","safety","Decision"] #column names can either be defined in the source file or names parameter
+  )
