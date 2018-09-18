@@ -3,17 +3,19 @@ import math
 import numpy as np
 #------------------------
 
-algorithm = "ID3" #ID3, C4.5
+algorithm = "C4.5" #ID3, C4.5
 
 df = pd.read_csv("golf.txt")
 #df = pd.read_csv("golf2.txt")
 #df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
+#df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 
 def processContinuousFeatures(df, column_name, entropy):
 	unique_values = sorted(df[column_name].unique())
 	#print(column_name,"->",unique_values)
 	
 	subset_gainratios = []
+	subset_gains = []
 	
 	for i in range(0, len(unique_values)-1):
 		threshold = unique_values[i]
@@ -30,13 +32,17 @@ def processContinuousFeatures(df, column_name, entropy):
 		subset2_probability = subset2_rows / total_instances
 		
 		threshold_gain = entropy - subset1_probability*calculateEntropy(subset1) - subset2_probability*calculateEntropy(subset2)
-		
 		threshold_splitinfo = -subset1_probability * math.log(subset1_probability, 2)-subset2_probability*math.log(subset2_probability, 2)
 		
 		gainratio = threshold_gain / threshold_splitinfo
 		subset_gainratios.append(gainratio)
+		subset_gains.append(threshold_gain)
 	
-	max_one = subset_gainratios.index(max(subset_gainratios))
+	if algorithm == "C4.5":
+		max_one = subset_gainratios.index(max(subset_gainratios))
+	elif algorithm == "ID3": #actually, ID3 does not support for continuous features but we can do it
+		max_one = subset_gains.index(max(subset_gains))
+		
 	winner_threshold = unique_values[max_one]
 	
 	#print("theshold is ",winner_threshold," for ",column_name)
@@ -144,6 +150,9 @@ def buildDecisionTree(df,precondition):
 		
 		if len(subdataset['Decision'].value_counts().tolist()) == 1:
 			final_decision = subdataset['Decision'].value_counts().keys().tolist()[0]
+			print(precondition,"if ",winner_name," is ",str(current_class)," then decision is ",final_decision)
+		elif subdataset.shape[1] == 1:
+			final_decision = subdataset['Decision'].value_counts().idxmax()
 			print(precondition,"if ",winner_name," is ",str(current_class)," then decision is ",final_decision)
 		else:
 			precondition = precondition + "if "+winner_name+" is "+str(current_class)+" AND "
