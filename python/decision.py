@@ -3,7 +3,7 @@ import math
 import numpy as np
 #------------------------
 
-algorithm = "C4.5" #ID3, C4.5
+algorithm = "CART" #ID3, C4.5, CART
 
 df = pd.read_csv("golf.txt")
 #df = pd.read_csv("golf2.txt")
@@ -16,6 +16,7 @@ def processContinuousFeatures(df, column_name, entropy):
 	
 	subset_gainratios = []
 	subset_gains = []
+	subset_ginis = []
 	
 	for i in range(0, len(unique_values)-1):
 		threshold = unique_values[i]
@@ -37,13 +38,33 @@ def processContinuousFeatures(df, column_name, entropy):
 		gainratio = threshold_gain / threshold_splitinfo
 		subset_gainratios.append(gainratio)
 		subset_gains.append(threshold_gain)
+		
+		#----------------------------
+		
+		decision_for_subset1 = subset1['Decision'].value_counts().tolist()
+		decision_for_subset2 = subset2['Decision'].value_counts().tolist()
+		
+		gini_subset1 = 1; gini_subset2 = 1
+		
+		for j in range(0, len(decision_for_subset1)):
+			gini_subset1 = gini_subset1 - pow((decision_for_subset1[j]/subset1_rows),2)
+		
+		for j in range(0, len(decision_for_subset2)):
+			gini_subset2 = gini_subset2 - pow((decision_for_subset2[j]/subset2_rows),2)
+		
+		gini = (subset1_rows/total_instances)*gini_subset1 + (subset2_rows/total_instances)*gini_subset2
+		subset_ginis.append(gini)
+		
+		#----------------------------
 	
 	if algorithm == "C4.5":
-		max_one = subset_gainratios.index(max(subset_gainratios))
+		winner_one = subset_gainratios.index(max(subset_gainratios))
 	elif algorithm == "ID3": #actually, ID3 does not support for continuous features but we can do it
-		max_one = subset_gains.index(max(subset_gains))
+		winner_one = subset_gains.index(max(subset_gains))
+	elif algorithm == "CART":
+		winner_one = subset_ginis.index(min(subset_ginis))
 		
-	winner_threshold = unique_values[max_one]
+	winner_threshold = unique_values[winner_one]
 	
 	#print("theshold is ",winner_threshold," for ",column_name)
 	df[column_name] = np.where(df[column_name] <= winner_threshold, "<="+str(winner_threshold), ">"+str(winner_threshold))
@@ -81,6 +102,7 @@ def findDecision(df):
 
 	gains = []
 	gainratios = []
+	ginis = []
 
 	for i in range(0, columns-1):
 		column_name = df.columns[i]
@@ -95,6 +117,8 @@ def findDecision(df):
 		
 		gain = entropy * 1
 		splitinfo = 0
+		subgini = 1
+		gini = 0
 		
 		for j in range(0, len(classes)):
 			current_class = classes.keys().tolist()[j]
@@ -111,16 +135,28 @@ def findDecision(df):
 			gain = gain - class_probability * subset_entropy			
 			splitinfo = splitinfo - class_probability*math.log(class_probability, 2)
 			
+			#-------------------
+			#GINI index
+			decision_list = subdataset['Decision'].value_counts().tolist()
+			
+			for k in range(0, len(decision_list)):
+				subgini = subgini - pow((decision_list[k]/subset_instances),2)
+			
+			gini = gini + (subset_instances/instances)*subgini
+			
 		gains.append(gain)
 		
 		gainratio = gain / splitinfo
 		gainratios.append(gainratio)
+		ginis.append(gini)
 	
 	#print(df)
 	if algorithm == "ID3":
 		winner_index = gains.index(max(gains))
 	elif algorithm == "C4.5":
 		winner_index = gainratios.index(max(gainratios))
+	elif algorithm == "CART":
+		winner_index = ginis.index(min(ginis))
 	winner_name = df.columns[winner_index]
 
 	return winner_name
