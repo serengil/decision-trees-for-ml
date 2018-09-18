@@ -41,3 +41,7 @@ Pandas and numpy python libraries are used to load data sets in this repository.
 pip install pandas
 pip install numpy
 ```
+
+# Updates
+
+To keep yourself up-to-date you might check posts in my blog about [decision trees](https://sefiks.com/tag/decision-tree/) 
