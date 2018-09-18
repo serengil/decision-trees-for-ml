@@ -28,7 +28,8 @@ Finally, you can change the data set to build different decision trees. Just pas
 
 ```
 df = pd.read_csv("car.data"
-  ,names=["buying","maint","doors","persons","lug_boot","safety","Decision"] #column names can either be defined in the source file or names parameter
+  #column names can either be defined in the source file or names parameter in read_csv command
+  ,names=["buying","maint","doors","persons","lug_boot","safety","Decision"] 
 )
 ```
 
