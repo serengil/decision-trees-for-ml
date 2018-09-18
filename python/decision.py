@@ -3,10 +3,10 @@ import math
 import numpy as np
 #------------------------
 
-algorithm = "C4.5" #ID3
+algorithm = "ID3" #ID3, C4.5
 
-#df = pd.read_csv("golf.txt")
-df = pd.read_csv("golf2.txt")
+df = pd.read_csv("golf.txt")
+#df = pd.read_csv("golf2.txt")
 #df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
 
 def processContinuousFeatures(df, column_name, entropy):
@@ -110,7 +110,7 @@ def findDecision(df):
 		gainratio = gain / splitinfo
 		gainratios.append(gainratio)
 	
-	print(df)
+	#print(df)
 	if algorithm == "ID3":
 		winner_index = gains.index(max(gains))
 	elif algorithm == "C4.5":
