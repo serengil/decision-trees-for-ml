@@ -47,10 +47,10 @@ def processContinuousFeatures(df, column_name, entropy):
 		gini_subset1 = 1; gini_subset2 = 1
 		
 		for j in range(0, len(decision_for_subset1)):
-			gini_subset1 = gini_subset1 - pow((decision_for_subset1[j]/subset1_rows),2)
+			gini_subset1 = gini_subset1 - math.pow((decision_for_subset1[j]/subset1_rows),2)
 		
 		for j in range(0, len(decision_for_subset2)):
-			gini_subset2 = gini_subset2 - pow((decision_for_subset2[j]/subset2_rows),2)
+			gini_subset2 = gini_subset2 - math.pow((decision_for_subset2[j]/subset2_rows),2)
 		
 		gini = (subset1_rows/total_instances)*gini_subset1 + (subset2_rows/total_instances)*gini_subset2
 		subset_ginis.append(gini)
@@ -117,7 +117,6 @@ def findDecision(df):
 		
 		gain = entropy * 1
 		splitinfo = 0
-		subgini = 1
 		gini = 0
 		
 		for j in range(0, len(classes)):
@@ -139,18 +138,23 @@ def findDecision(df):
 			#GINI index
 			decision_list = subdataset['Decision'].value_counts().tolist()
 			
-			for k in range(0, len(decision_list)):
-				subgini = subgini - pow((decision_list[k]/subset_instances),2)
+			subgini = 1
 			
+			for k in range(0, len(decision_list)):
+				subgini = subgini - math.pow((decision_list[k]/subset_instances),2)
+				
 			gini = gini + (subset_instances/instances)*subgini
+			
+			
 			
 		gains.append(gain)
 		
 		gainratio = gain / splitinfo
 		gainratios.append(gainratio)
 		ginis.append(gini)
+			
 	
-	#print(df)
+	#print(df)	
 	if algorithm == "ID3":
 		winner_index = gains.index(max(gains))
 	elif algorithm == "C4.5":
@@ -158,7 +162,7 @@ def findDecision(df):
 	elif algorithm == "CART":
 		winner_index = ginis.index(min(ginis))
 	winner_name = df.columns[winner_index]
-
+	
 	return winner_name
 
 def buildDecisionTree(df,precondition):
