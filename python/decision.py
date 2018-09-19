@@ -3,7 +3,7 @@ import math
 import numpy as np
 #------------------------
 
-algorithm = "ID3" #ID3, C4.5, CART, Regression
+algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
 df = pd.read_csv("golf.txt")
 #df = pd.read_csv("golf2.txt")
@@ -221,7 +221,16 @@ def findDecision(df):
 	
 	return winner_name
 
-def buildDecisionTree(df,precondition):
+def formatRule(root):
+	resp = ''
+	for i in range(0, root):
+		resp = resp + '   '
+	return resp
+	
+def buildDecisionTree(df,root):
+	
+	tmp_root = root * 1
+	
 	df_copy = df.copy()
 	
 	winner_name = findDecision(df)
@@ -245,18 +254,28 @@ def buildDecisionTree(df,precondition):
 		
 		if len(subdataset['Decision'].value_counts().tolist()) == 1:
 			final_decision = subdataset['Decision'].value_counts().keys().tolist()[0]
-			print(precondition,"if ",winner_name," is ",str(current_class)," then decision is ",final_decision)
+			print(formatRule(root),end='')
+			print("if ",winner_name," is ",str(current_class),":")
+			print(formatRule(root),"\treturn '",final_decision,"'")
 		elif subdataset.shape[1] == 1:
 			final_decision = subdataset['Decision'].value_counts().idxmax()
-			print(precondition,"if ",winner_name," is ",str(current_class)," then decision is ",final_decision)
+			print(formatRule(root),end='')
+			print("if ",winner_name," is ",str(current_class),":")
+			print(formatRule(root),"\treturn '",final_decision,"'")
 		elif algorithm == 'Regression' and subdataset.shape[0] < 5:
 			#in regression trees we need to terminate building tree to avoid overfitting
 			final_decision = subdataset['Decision'].mean()
-			print(precondition,"if ",winner_name," is ",str(current_class)," then decision is ",final_decision)
+			print(formatRule(root),end='')
+			print("if ",winner_name," is ",str(current_class),":")
+			print(formatRule(root),"\treturn",final_decision)
 		else:
-			precondition = precondition + "if "+winner_name+" is "+str(current_class)+" AND "
-			#print("if ",winner_name," is ",current_class," AND ")
-			buildDecisionTree(subdataset,precondition)
-			precondition = ''
+			print(formatRule(root),end='')
+			print("if ",winner_name," is ",current_class,": ")
+			
+			root = root + 1
+			buildDecisionTree(subdataset, root)
+		
+		root = tmp_root * 1
 
-buildDecisionTree(df,'')
+root = 0
+buildDecisionTree(df, root)
