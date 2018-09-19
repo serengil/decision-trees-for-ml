@@ -5,12 +5,12 @@ import numpy as np
 
 algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
-df = pd.read_csv("golf.txt")
+#df = pd.read_csv("golf.txt")
 #df = pd.read_csv("golf2.txt")
 #df = pd.read_csv("golf3.txt")
 
 #df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
-#df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
+df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 
 #------------------------
 
@@ -261,13 +261,15 @@ def buildDecisionTree(df,root):
 			final_decision = subdataset['Decision'].value_counts().idxmax()
 			print(formatRule(root),end='')
 			print("if ",winner_name," is ",str(current_class),":")
-			print(formatRule(root),"\treturn '",final_decision,"'")
+			print(formatRule(root+1),end='')
+			print("return '",final_decision,"'")
 		elif algorithm == 'Regression' and subdataset.shape[0] < 5:
 			#in regression trees we need to terminate building tree to avoid overfitting
 			final_decision = subdataset['Decision'].mean()
 			print(formatRule(root),end='')
 			print("if ",winner_name," is ",str(current_class),":")
-			print(formatRule(root),"\treturn",final_decision)
+			print(formatRule(root+1),end='')
+			print("return",final_decision)
 		else:
 			print(formatRule(root),end='')
 			print("if ",winner_name," is ",current_class,": ")
