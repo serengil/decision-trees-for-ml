@@ -257,14 +257,11 @@ if enableRandomForest == False:
 	root = 0
 	buildDecisionTree(df,root)
 else:
-	rows = df.shape[0]
-	rows_for_subsets = int(rows / number_of_trees)
-	
-	for i in range(0, number_of_trees):
-		start_index = i * rows_for_subsets
-		subset = df[start_index:start_index+rows_for_subsets]
+	for i in range(0, num_of_trees):
+		subset = df.sample(frac=1/num_of_trees)
 		
 		root = 0
-		print("decision tree number ",i)
+		
+		print("decision tree number",i)
 		buildDecisionTree(subset,root)
-		print("-----------------------")
+		print("----------------------")
