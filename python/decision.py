@@ -85,7 +85,7 @@ def processContinuousFeatures(df, column_name, entropy):
 
 def calculateEntropy(df):
 	
-	if df['Decision'].dtypes != 'object':
+	if algorithm == "Regression":
 		return 0
 	
 	#print(df)
