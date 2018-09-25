@@ -3,15 +3,15 @@ import math
 import numpy as np
 #------------------------
 
-algorithm = "ID3" #ID3, C4.5, CART, Regression
+algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
 enableRandomForest = False
-number_of_trees = 3 #this should be a prime number
+num_of_trees = 3 #this should be a prime number 
 
 #------------------------
 
-df = pd.read_csv("golf.txt")
-#df = pd.read_csv("golf2.txt")
+#df = pd.read_csv("golf.txt")
+df = pd.read_csv("golf2.txt")
 #df = pd.read_csv("golf3.txt")
 #df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
 #df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
@@ -20,7 +20,9 @@ df = pd.read_csv("golf.txt")
 
 if df['Decision'].dtypes != 'object':
 	algorithm = 'Regression'
+	global_stdev = df['Decision'].std(ddof=0)
 
+dataset_features = dict()
 #------------------------
 
 def processContinuousFeatures(df, column_name, entropy):
@@ -85,7 +87,7 @@ def processContinuousFeatures(df, column_name, entropy):
 
 def calculateEntropy(df):
 	
-	if algorithm == "Regression":
+	if algorithm == 'Regression':
 		return 0
 	
 	#print(df)
@@ -210,12 +212,20 @@ def formatRule(root):
 
 def buildDecisionTree(df,root):
 
+	charForResp = "'"
+	if algorithm == 'Regression':
+		charForResp = ""
+
 	tmp_root = root * 1
 	
 	df_copy = df.copy()
 	
 	winner_name = findDecision(df)
 	#print("winner is ",winner_name)
+	
+	numericColumn = False
+	if dataset_features[winner_name] != 'object':
+		numericColumn = True
 	
 	#restoration
 	columns = df.shape[1]
@@ -231,37 +241,61 @@ def buildDecisionTree(df,root):
 		subdataset = df[df[winner_name] == current_class]
 		subdataset = subdataset.drop(columns=[winner_name])
 		
+		if numericColumn == True:
+			compareTo = current_class
+		else:
+			compareTo = " == '"+str(current_class)+"'"
+		
 		#print(subdataset)
 		
 		if len(subdataset['Decision'].value_counts().tolist()) == 1:
 			final_decision = subdataset['Decision'].value_counts().keys().tolist()[0]
-			print(formatRule(root),"if ",winner_name," is ",str(current_class),":")
-			print(formatRule(root+1),"return ",final_decision)
+			print(formatRule(root),"if ",winner_name,compareTo,":")
+			print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
 		elif subdataset.shape[1] == 1:
 			final_decision = subdataset['Decision'].value_counts().idxmax()
-			print(formatRule(root),"if ",winner_name," is ",str(current_class),":")
-			print(formatRule(root+1),"return ",final_decision)
+			print(formatRule(root),"if ",winner_name,compareTo,":")
+			print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
 		elif algorithm == 'Regression' and subdataset.shape[0] < 5:
+		#elif algorithm == 'Regression' and subdataset['Decision'].std(ddof=0)/global_stdev < 0.4:
 			final_decision = subdataset['Decision'].mean()
-			print(formatRule(root),"if ",winner_name," is ",str(current_class),":")
-			print(formatRule(root+1),"return ",final_decision)
+			print(formatRule(root),"if ",winner_name,compareTo,":")
+			print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
 		else:
-			print(formatRule(root),"if ",winner_name," is ",current_class,":")
+			print(formatRule(root),"if ",winner_name,compareTo,":")
 			root = root + 1
 			buildDecisionTree(subdataset,root)
 		
 		root = tmp_root * 1
 		
 #--------------------------
-if enableRandomForest == False:		
-	root = 0
+
+print("def findDecision(",end='')
+num_of_columns = df.shape[1]-1
+for i in range(0, num_of_columns):
+	if i > 0:
+		print(",", end='')
+	print(df.columns[i],end='')
+	
+	column_name = df.columns[i]
+	dataset_features[column_name] = df[column_name].dtypes
+
+print("):")
+
+#--------------------------
+
+if enableRandomForest == False:
+	root = 1
 	buildDecisionTree(df,root)
-else:
+else: 
+	
 	for i in range(0, num_of_trees):
 		subset = df.sample(frac=1/num_of_trees)
 		
-		root = 0
+		root = 1
 		
 		print("decision tree number",i)
 		buildDecisionTree(subset,root)
 		print("----------------------")
+
+print(formatRule(1),"return None")
