@@ -1,6 +1,8 @@
 # Decision Trees for Machine Learning
 
-This is the repository of Decision Trees for Machine Learning online course. In this course, the following algorithms will be covered. All project is going to be developed on Python (3.6.4), and neither out-of-the-box library nor framework will be used to build decision trees.
+This is the repository of Decision Trees for Machine Learning online course published on Udemy. In this course, the following algorithms will be covered. All project is going to be developed on Python (3.6.4), and neither out-of-the-box library nor framework will be used to build decision trees.
+
+Course: https://www.udemy.com/decision-trees-for-machine-learning/?couponCode=DTML-BLOG-18 
 
 1- ID3 - [Documentation](https://sefiks.com/2017/11/20/a-step-by-step-id3-decision-tree-example/)
 
