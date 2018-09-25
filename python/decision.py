@@ -6,16 +6,15 @@ import numpy as np
 algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
 enableRandomForest = False
-num_of_trees = 3 #this should be a prime number
-enableMultitasking = False
+num_of_trees = 3 #this should be a prime number 
 
 #------------------------
 
 #df = pd.read_csv("golf.txt")
-df = pd.read_csv("golf2.txt")
+#df = pd.read_csv("golf2.txt")
 #df = pd.read_csv("golf3.txt")
 #df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
-#df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
+df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 
 #------------------------
 
@@ -212,7 +211,7 @@ def formatRule(root):
 	return resp
 
 def buildDecisionTree(df,root=1):
-
+	#print(df.shape)
 	charForResp = "'"
 	if algorithm == 'Regression':
 		charForResp = ""
@@ -289,15 +288,16 @@ if enableRandomForest == False:
 	root = 1
 	buildDecisionTree(df,root)
 else: 
+	
+	enableMultitasking = False
+	
 	if enableMultitasking == False: #serial
 		for i in range(0, num_of_trees):
 			subset = df.sample(frac=1/num_of_trees)
 			
 			root = 1
 			
-			print("decision tree number",i)
 			buildDecisionTree(subset,root)
-			print("----------------------")
 	else: #parallel
 		from multiprocessing import Pool
 		
@@ -305,10 +305,9 @@ else:
 		
 		for i in range(0, num_of_trees):
 			subset = df.sample(frac=1/num_of_trees)
-			subsets.append(subset)
+			root = 1
+			subsets.append((subset, root))
 		
 		if __name__ == '__main__':
 			with Pool(2) as pool:
-				pool.map(buildDecisionTree, subsets)
-	
-print(formatRule(1),"return None")
+				pool.starmap(buildDecisionTree, subsets)
