@@ -6,18 +6,18 @@ import time
 
 algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
-enableRandomForest = True
-num_of_trees = 3 #this should be a prime number
+enableRandomForest = False
+num_of_trees = 5 #this should be a prime number
 enableMultitasking = True
 
-dump_to_console = False #set this true to print rules in console instead of creating files
+dump_to_console = True #Set this True to print rules in console. Set this False to store rules in a flat file.
 
 #------------------------
 
 #df = pd.read_csv("golf.txt")
-#df = pd.read_csv("golf2.txt")
+df = pd.read_csv("golf2.txt")
 #df = pd.read_csv("golf3.txt")
-df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
+#df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
 #df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 
 #------------------------
@@ -312,6 +312,9 @@ for i in range(0, num_of_columns):
 	dataset_features[column_name] = df[column_name].dtypes
 
 header = header + "):\n"
+
+if dump_to_console == True:
+	print(header,end='')
 
 #--------------------------
 begin = time.time()
