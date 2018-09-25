@@ -6,7 +6,8 @@ import numpy as np
 algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
 enableRandomForest = False
-num_of_trees = 3 #this should be a prime number 
+num_of_trees = 3 #this should be a prime number
+enableMultitasking = False
 
 #------------------------
 
@@ -210,7 +211,7 @@ def formatRule(root):
 	
 	return resp
 
-def buildDecisionTree(df,root):
+def buildDecisionTree(df,root=1):
 
 	charForResp = "'"
 	if algorithm == 'Regression':
@@ -288,14 +289,26 @@ if enableRandomForest == False:
 	root = 1
 	buildDecisionTree(df,root)
 else: 
+	if enableMultitasking == False: #serial
+		for i in range(0, num_of_trees):
+			subset = df.sample(frac=1/num_of_trees)
+			
+			root = 1
+			
+			print("decision tree number",i)
+			buildDecisionTree(subset,root)
+			print("----------------------")
+	else: #parallel
+		from multiprocessing import Pool
+		
+		subsets = []
+		
+		for i in range(0, num_of_trees):
+			subset = df.sample(frac=1/num_of_trees)
+			subsets.append(subset)
+		
+		if __name__ == '__main__':
+			with Pool(2) as pool:
+				pool.map(buildDecisionTree, subsets)
 	
-	for i in range(0, num_of_trees):
-		subset = df.sample(frac=1/num_of_trees)
-		
-		root = 1
-		
-		print("decision tree number",i)
-		buildDecisionTree(subset,root)
-		print("----------------------")
-
 print(formatRule(1),"return None")
