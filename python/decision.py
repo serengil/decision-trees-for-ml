@@ -1,20 +1,24 @@
 import pandas as pd
 import math
 import numpy as np
+import time
 #------------------------
 
 algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
-enableRandomForest = False
-num_of_trees = 3 #this should be a prime number 
+enableRandomForest = True
+num_of_trees = 3 #this should be a prime number
+enableMultitasking = True
+
+dump_to_console = False #set this true to print rules in console instead of creating files
 
 #------------------------
 
 #df = pd.read_csv("golf.txt")
 #df = pd.read_csv("golf2.txt")
 #df = pd.read_csv("golf3.txt")
-#df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
-df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
+df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
+#df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 
 #------------------------
 
@@ -179,6 +183,10 @@ def findDecision(df):
 			gains.append(gain)
 		
 		if algorithm == "C4.5":
+		
+			if splitinfo == 0:
+				splitinfo = 100 #this can be if data set consists of 2 rows and current column consists of 1 class. still decision can be made (decisions for these 2 rows same). set splitinfo to very large value to make gain ratio very small. in this way, we won't find this column as the most dominant one.
+				
 			gainratio = gain / splitinfo
 			gainratios.append(gainratio)
 		
@@ -208,9 +216,18 @@ def formatRule(root):
 	for i in range(0, root):
 		resp = resp + '   '
 	
-	return resp
+	return resp	
 
-def buildDecisionTree(df,root=1):
+def storeRule(file,content):
+		f = open(file, "a+")
+		f.writelines(content)
+		f.writelines("\n")
+
+def createFile(file,content):
+		f = open(file, "w")
+		f.write(content)
+	
+def buildDecisionTree(df,root,file):
 	#print(df.shape)
 	charForResp = "'"
 	if algorithm == 'Regression':
@@ -250,64 +267,104 @@ def buildDecisionTree(df,root=1):
 		
 		if len(subdataset['Decision'].value_counts().tolist()) == 1:
 			final_decision = subdataset['Decision'].value_counts().keys().tolist()[0]
-			print(formatRule(root),"if ",winner_name,compareTo,":")
-			print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
+			if dump_to_console == True:
+				print(formatRule(root),"if ",winner_name,compareTo,":")
+				print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
+			else:
+				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
+				storeRule(file,(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp))
 		elif subdataset.shape[1] == 1:
 			final_decision = subdataset['Decision'].value_counts().idxmax()
-			print(formatRule(root),"if ",winner_name,compareTo,":")
-			print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
+			if dump_to_console == True:			
+				print(formatRule(root),"if ",winner_name,compareTo,":")
+				print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
+			else:
+				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
+				storeRule(file,(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp))
 		elif algorithm == 'Regression' and subdataset.shape[0] < 5:
 		#elif algorithm == 'Regression' and subdataset['Decision'].std(ddof=0)/global_stdev < 0.4:
 			final_decision = subdataset['Decision'].mean()
-			print(formatRule(root),"if ",winner_name,compareTo,":")
-			print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
+			if dump_to_console == True:
+				print(formatRule(root),"if ",winner_name,compareTo,":")
+				print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
+			else:
+				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
+				storeRule(file,(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp))
 		else:
-			print(formatRule(root),"if ",winner_name,compareTo,":")
+			if dump_to_console == True:
+				print(formatRule(root),"if ",winner_name,compareTo,":")
+			else:
+				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
 			root = root + 1
-			buildDecisionTree(subdataset,root)
+			buildDecisionTree(subdataset,root,file)
 		
 		root = tmp_root * 1
 		
 #--------------------------
-
-print("def findDecision(",end='')
+header = "def findDecision("
 num_of_columns = df.shape[1]-1
 for i in range(0, num_of_columns):
 	if i > 0:
-		print(",", end='')
-	print(df.columns[i],end='')
+		header = header + ","
+	header = header + df.columns[i]
 	
 	column_name = df.columns[i]
 	dataset_features[column_name] = df[column_name].dtypes
 
-print("):")
+header = header + "):\n"
 
 #--------------------------
+begin = time.time()
 
 if enableRandomForest == False:
 	root = 1
-	buildDecisionTree(df,root)
+	
+	file = "rules.py"
+	
+	if dump_to_console == False:
+		createFile(file, header)
+	
+	buildDecisionTree(df,root,file)
+	print("finished in ",time.time() - begin," seconds")
+	
 else: 
 	
-	enableMultitasking = False
-	
 	if enableMultitasking == False: #serial
+		
 		for i in range(0, num_of_trees):
 			subset = df.sample(frac=1/num_of_trees)
 			
 			root = 1
 			
-			buildDecisionTree(subset,root)
+			file = "rule_"+str(i)+".py"
+			
+			if dump_to_console == False:
+				createFile(file, header)
+			
+			buildDecisionTree(subset,root, file)
+		
+		print("finished in ",time.time() - begin," seconds")
+		
 	else: #parallel
+		
 		from multiprocessing import Pool
 		
 		subsets = []
 		
 		for i in range(0, num_of_trees):
+			
+			file = "rule_"+str(i)+".py"
+			
 			subset = df.sample(frac=1/num_of_trees)
 			root = 1
-			subsets.append((subset, root))
+			subsets.append((subset, root, file))
+			
+			if dump_to_console == False:
+				createFile(file, header)
 		
 		if __name__ == '__main__':
-			with Pool(2) as pool:
+			with Pool(num_of_trees) as pool:
 				pool.starmap(buildDecisionTree, subsets)
+			
+			print("finished in ",time.time() - begin," seconds")
+		
