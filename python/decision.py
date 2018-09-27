@@ -4,7 +4,7 @@ import numpy as np
 import time
 #------------------------
 
-algorithm = "C4.5" #ID3, C4.5, CART, Regression
+algorithm = "ID3" #ID3, C4.5, CART, Regression
 
 enableRandomForest = False
 num_of_trees = 3 #this should be a prime number
@@ -13,18 +13,26 @@ enableMultitasking = True
 dump_to_console = True #Set this True to print rules in console. Set this False to store rules in a flat file.
 
 #------------------------
-
-df = pd.read_csv("golf.txt")
-#df = pd.read_csv("golf2.txt")
-#df = pd.read_csv("golf3.txt")
+#Data set
+#df = pd.read_csv("golf.txt") #nominal features and target
+#df = pd.read_csv("golf2.txt") #nominal and numeric features, nominal target
+#df = pd.read_csv("golf3.txt") #nominal features and numeric target
+df = pd.read_csv("golf4.txt") #nominal and numeric features, numeric target
 #df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
 #df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 
+#you can find these data sets at https://github.com/serengil/decision-trees-for-ml/tree/master/dataset
 #------------------------
 
-if df['Decision'].dtypes != 'object':
+if algorithm == 'Regression':
+	if df['Decision'].dtypes == 'object':
+		raise ValueError('Regression trees cannot be applied for nominal target values! You can either change the algorithm or data set.')
+
+if df['Decision'].dtypes != 'object': #this must be regression tree even if it is not mentioned in algorithm
 	algorithm = 'Regression'
 	global_stdev = df['Decision'].std(ddof=0)
+
+print(algorithm," tree is going to be built...")
 
 dataset_features = dict() #initialize a dictionary. 
 #------------------------
@@ -33,7 +41,7 @@ def processContinuousFeatures(df, column_name, entropy):
 	unique_values = sorted(df[column_name].unique())
 	#print(column_name,"->",unique_values)
 	
-	subset_gainratios = []; subset_gains = []; subset_ginis = []
+	subset_gainratios = []; subset_gains = []; subset_ginis = []; subset_red_stdevs = []
 	
 	for i in range(0, len(unique_values)-1):
 		threshold = unique_values[i]
@@ -41,44 +49,57 @@ def processContinuousFeatures(df, column_name, entropy):
 		subset1 = df[df[column_name] <= threshold]
 		subset2 = df[df[column_name] > threshold]
 		
-		subset1_rows = subset1.shape[0]
-		subset2_rows = subset2.shape[0]
-		
+		subset1_rows = subset1.shape[0]; subset2_rows = subset2.shape[0]
 		total_instances = df.shape[0] #subset1_rows+subset2_rows
 		
 		subset1_probability = subset1_rows / total_instances
 		subset2_probability = subset2_rows / total_instances
 		
-		threshold_gain = entropy - subset1_probability*calculateEntropy(subset1) - subset2_probability*calculateEntropy(subset2)
-		threshold_splitinfo = -subset1_probability * math.log(subset1_probability, 2)-subset2_probability*math.log(subset2_probability, 2)
+		if algorithm == 'ID3' or algorithm == 'C4.5':
+			threshold_gain = entropy - subset1_probability*calculateEntropy(subset1) - subset2_probability*calculateEntropy(subset2)
+			subset_gains.append(threshold_gain)
 		
-		gainratio = threshold_gain / threshold_splitinfo
-		subset_gainratios.append(gainratio)
-		subset_gains.append(threshold_gain)
+		if algorithm == 'C4.5': #C4.5 also need gain in the block above. That's why, instead of else if we used direct if condition here
+			threshold_splitinfo = -subset1_probability * math.log(subset1_probability, 2)-subset2_probability*math.log(subset2_probability, 2)
+			gainratio = threshold_gain / threshold_splitinfo
+			subset_gainratios.append(gainratio)
+				
+		elif algorithm == 'CART':
+			decision_for_subset1 = subset1['Decision'].value_counts().tolist()
+			decision_for_subset2 = subset2['Decision'].value_counts().tolist()
+			
+			gini_subset1 = 1; gini_subset2 = 1
+			
+			for j in range(0, len(decision_for_subset1)):
+				gini_subset1 = gini_subset1 - math.pow((decision_for_subset1[j]/subset1_rows),2)
+			
+			for j in range(0, len(decision_for_subset2)):
+				gini_subset2 = gini_subset2 - math.pow((decision_for_subset2[j]/subset2_rows),2)
+			
+			gini = (subset1_rows/total_instances)*gini_subset1 + (subset2_rows/total_instances) * gini_subset2
+			
+			subset_ginis.append(gini)
 		
-		#---------------------------------
-		
-		decision_for_subset1 = subset1['Decision'].value_counts().tolist()
-		decision_for_subset2 = subset2['Decision'].value_counts().tolist()
-		
-		gini_subset1 = 1; gini_subset2 = 1
-		
-		for j in range(0, len(decision_for_subset1)):
-			gini_subset1 = gini_subset1 - math.pow((decision_for_subset1[j]/subset1_rows),2)
-		
-		for j in range(0, len(decision_for_subset2)):
-			gini_subset2 = gini_subset2 - math.pow((decision_for_subset2[j]/subset2_rows),2)
-		
-		gini = (subset1_rows/total_instances)*gini_subset1 + (subset2_rows/total_instances) * gini_subset2
-		
-		subset_ginis.append(gini)
+		#----------------------------------
+		elif algorithm == 'Regression':
+			superset_stdev = df['Decision'].std(ddof=0)
+			subset1_stdev = subset1['Decision'].std(ddof=0)
+			subset2_stdev = subset2['Decision'].std(ddof=0)
+			
+			threshold_weighted_stdev = (subset1_rows/total_instances)*subset1_stdev + (subset2_rows/total_instances)*subset2_stdev
+			threshold_reducted_stdev = superset_stdev - threshold_weighted_stdev
+			subset_red_stdevs.append(threshold_reducted_stdev)
+			
+		#----------------------------------
 	
 	if algorithm == "C4.5":
 		winner_one = subset_gainratios.index(max(subset_gainratios))
-	elif algorithm == "ID3": #actually, ID3 does not support for continuous features but we can do it
+	elif algorithm == "ID3": #actually, ID3 does not support for continuous features but we can still do it
 		winner_one = subset_gains.index(max(subset_gains))
 	elif algorithm == "CART":
 		winner_one = subset_ginis.index(min(subset_ginis))
+	elif algorithm == 'Regression':
+		winner_one = subset_red_stdevs.index(max(subset_red_stdevs))
 		
 	winner_threshold = unique_values[winner_one]
 	
@@ -94,8 +115,7 @@ def calculateEntropy(df):
 	
 	#print(df)
 
-	instances = df.shape[0]
-	columns = df.shape[1]
+	instances = df.shape[0]; columns = df.shape[1]
 	#print(instances," rows, ",columns," columns")
 
 	decisions = df['Decision'].value_counts().keys().tolist()
@@ -120,8 +140,7 @@ def findDecision(df):
 	entropy = calculateEntropy(df)
 	#print("entropy: ",entropy)
 
-	columns = df.shape[1]
-	instances = df.shape[0]
+	columns = df.shape[1]; instances = df.shape[0]
 
 	gains = []; gainratios = []; ginis = []; reducted_stdevs = []
 
@@ -136,10 +155,7 @@ def findDecision(df):
 		
 		classes = df[column_name].value_counts()
 		
-		gain = entropy * 1
-		splitinfo = 0
-		gini = 0
-		weighted_stdev = 0
+		gain = entropy * 1; splitinfo = 0; gini = 0; weighted_stdev = 0
 		
 		for j in range(0, len(classes)):
 			current_class = classes.keys().tolist()[j]
@@ -147,37 +163,39 @@ def findDecision(df):
 			
 			subdataset = df[df[column_name] == current_class]
 			#print(subdataset)
-			subset_entropy = calculateEntropy(subdataset)
-			#print("entropy for this sub dataset is ", subset_entropy)
 			
 			subset_instances = subdataset.shape[0]
 			class_probability = subset_instances/instances
 			
-			gain = gain - class_probability * subset_entropy			
-			splitinfo = splitinfo - class_probability*math.log(class_probability, 2)
+			if algorithm == 'ID3' or algorithm == 'C4.5':
+				subset_entropy = calculateEntropy(subdataset)
+				#print("entropy for this sub dataset is ", subset_entropy)
+				gain = gain - class_probability * subset_entropy			
 			
-			#------------------------------
-			#GINI index
+			if algorithm == 'C4.5':
+				splitinfo = splitinfo - class_probability*math.log(class_probability, 2)
 			
-			decision_list = subdataset['Decision'].value_counts().tolist()
+			elif algorithm == 'CART': #GINI index
+				decision_list = subdataset['Decision'].value_counts().tolist()
+				
+				subgini = 1
+				
+				for k in range(0, len(decision_list)):
+					subgini = subgini - math.pow((decision_list[k]/subset_instances), 2)
+				
+				gini = gini + (subset_instances / instances) * subgini
 			
-			subgini = 1
-			
-			for k in range(0, len(decision_list)):
-				subgini = subgini - math.pow((decision_list[k]/subset_instances), 2)
-			
-			gini = gini + (subset_instances / instances) * subgini
-			
-			#------------------------------
-			
-			if algorithm == 'Regression':
+			elif algorithm == 'Regression':
 				subset_stdev = subdataset['Decision'].std(ddof=0)
 				weighted_stdev = weighted_stdev + (subset_instances/instances)*subset_stdev
-			
+		
+		#iterating over classes for loop end
+		#-------------------------------
+		
 		if algorithm == "ID3":
 			gains.append(gain)
 		
-		if algorithm == "C4.5":
+		elif algorithm == "C4.5":
 		
 			if splitinfo == 0:
 				splitinfo = 100 #this can be if data set consists of 2 rows and current column consists of 1 class. still decision can be made (decisions for these 2 rows same). set splitinfo to very large value to make gain ratio very small. in this way, we won't find this column as the most dominant one.
@@ -185,10 +203,10 @@ def findDecision(df):
 			gainratio = gain / splitinfo
 			gainratios.append(gainratio)
 		
-		if algorithm == "CART":
+		elif algorithm == "CART":
 			ginis.append(gini)
 		
-		if algorithm == 'Regression':
+		elif algorithm == 'Regression':
 			reducted_stdev = stdev - weighted_stdev
 			reducted_stdevs.append(reducted_stdev)
 	
@@ -360,9 +378,8 @@ else:
 			if dump_to_console == False:
 				createFile(file, header)
 		
-		if __name__ == '__main__':
+		if __name__ == '__main__': #windows returns expection if this control is not applied for multitasking
 			with Pool(num_of_trees) as pool:
 				pool.starmap(buildDecisionTree, subsets)
 			
 			print("finished in ",time.time() - begin," seconds")
-		
