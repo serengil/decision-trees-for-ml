@@ -33,9 +33,7 @@ def processContinuousFeatures(df, column_name, entropy):
 	unique_values = sorted(df[column_name].unique())
 	#print(column_name,"->",unique_values)
 	
-	subset_gainratios = []
-	subset_gains = []
-	subset_ginis = []
+	subset_gainratios = []; subset_gains = []; subset_ginis = []
 	
 	for i in range(0, len(unique_values)-1):
 		threshold = unique_values[i]
@@ -125,10 +123,7 @@ def findDecision(df):
 	columns = df.shape[1]
 	instances = df.shape[0]
 
-	gains = []
-	gainratios = []
-	ginis = []
-	reducted_stdevs = []
+	gains = []; gainratios = []; ginis = []; reducted_stdevs = []
 
 	for i in range(0, columns-1):
 		column_name = df.columns[i]
