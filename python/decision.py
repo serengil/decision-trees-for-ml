@@ -7,15 +7,15 @@ import time
 algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
 enableRandomForest = False
-num_of_trees = 5 #this should be a prime number
+num_of_trees = 3 #this should be a prime number
 enableMultitasking = True
 
 dump_to_console = True #Set this True to print rules in console. Set this False to store rules in a flat file.
 
 #------------------------
 
-#df = pd.read_csv("golf.txt")
-df = pd.read_csv("golf2.txt")
+df = pd.read_csv("golf.txt")
+#df = pd.read_csv("golf2.txt")
 #df = pd.read_csv("golf3.txt")
 #df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
 #df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
@@ -26,7 +26,7 @@ if df['Decision'].dtypes != 'object':
 	algorithm = 'Regression'
 	global_stdev = df['Decision'].std(ddof=0)
 
-dataset_features = dict()
+dataset_features = dict() #initialize a dictionary. 
 #------------------------
 
 def processContinuousFeatures(df, column_name, entropy):
@@ -259,31 +259,31 @@ def buildDecisionTree(df,root,file):
 		subdataset = subdataset.drop(columns=[winner_name])
 		
 		if numericColumn == True:
-			compareTo = current_class
+			compareTo = current_class #current class might be <=x or >x in this case
 		else:
 			compareTo = " == '"+str(current_class)+"'"
 		
 		#print(subdataset)
 		
+		terminateBuilding = False
+		
+		#-----------------------------------------------
+		#can decision be made?
+		
 		if len(subdataset['Decision'].value_counts().tolist()) == 1:
-			final_decision = subdataset['Decision'].value_counts().keys().tolist()[0]
-			if dump_to_console == True:
-				print(formatRule(root),"if ",winner_name,compareTo,":")
-				print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
-			else:
-				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
-				storeRule(file,(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp))
-		elif subdataset.shape[1] == 1:
-			final_decision = subdataset['Decision'].value_counts().idxmax()
-			if dump_to_console == True:			
-				print(formatRule(root),"if ",winner_name,compareTo,":")
-				print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
-			else:
-				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
-				storeRule(file,(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp))
+			final_decision = subdataset['Decision'].value_counts().keys().tolist()[0] #all items are equal in this case
+			terminateBuilding = True
+		elif subdataset.shape[1] == 1: #if decision cannot be made even though all columns dropped
+			final_decision = subdataset['Decision'].value_counts().idxmax() #get the most frequent one
+			terminateBuilding = True
 		elif algorithm == 'Regression' and subdataset.shape[0] < 5:
 		#elif algorithm == 'Regression' and subdataset['Decision'].std(ddof=0)/global_stdev < 0.4:
-			final_decision = subdataset['Decision'].mean()
+			final_decision = subdataset['Decision'].mean() #get average
+			terminateBuilding = True
+		
+		#-----------------------------------------------
+		
+		if terminateBuilding == True:
 			if dump_to_console == True:
 				print(formatRule(root),"if ",winner_name,compareTo,":")
 				print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
@@ -295,7 +295,7 @@ def buildDecisionTree(df,root,file):
 				print(formatRule(root),"if ",winner_name,compareTo,":")
 			else:
 				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
-			root = root + 1
+			root = root + 1 #the following rule will be included by this rule. increase root
 			buildDecisionTree(subdataset,root,file)
 		
 		root = tmp_root * 1
