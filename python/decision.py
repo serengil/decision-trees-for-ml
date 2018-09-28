@@ -4,7 +4,7 @@ import numpy as np
 import time
 #------------------------
 
-algorithm = "ID3" #ID3, C4.5, CART, Regression
+algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
 enableRandomForest = False
 num_of_trees = 3 #this should be a prime number
@@ -17,8 +17,8 @@ dump_to_console = True #Set this True to print rules in console. Set this False 
 #df = pd.read_csv("golf.txt") #nominal features and target
 #df = pd.read_csv("golf2.txt") #nominal and numeric features, nominal target
 #df = pd.read_csv("golf3.txt") #nominal features and numeric target
-df = pd.read_csv("golf4.txt") #nominal and numeric features, numeric target
-#df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
+#df = pd.read_csv("golf4.txt") #nominal and numeric features, numeric target
+df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
 #df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 
 #you can find these data sets at https://github.com/serengil/decision-trees-for-ml/tree/master/dataset
@@ -98,7 +98,7 @@ def processContinuousFeatures(df, column_name, entropy):
 		winner_one = subset_gains.index(max(subset_gains))
 	elif algorithm == "CART":
 		winner_one = subset_ginis.index(min(subset_ginis))
-	elif algorithm == 'Regression':
+	elif algorithm == "Regression":
 		winner_one = subset_red_stdevs.index(max(subset_red_stdevs))
 		
 	winner_threshold = unique_values[winner_one]
@@ -217,7 +217,7 @@ def findDecision(df):
 		winner_index = gainratios.index(max(gainratios))
 	elif algorithm == "CART":
 		winner_index = ginis.index(min(ginis))
-	elif algorithm == 'Regression':
+	elif algorithm == "Regression":
 		winner_index = reducted_stdevs.index(max(reducted_stdevs))
 	winner_name = df.columns[winner_index]
 
@@ -260,8 +260,8 @@ def buildDecisionTree(df,root,file):
 	#restoration
 	columns = df.shape[1]
 	for i in range(0, columns-1):
-		column_name = df.columns[i]
-		if column_name != winner_name:
+		column_name = df.columns[i]; column_type = df[column_name].dtypes
+		if column_type != 'object' and column_name != winner_name:
 			df[column_name] = df_copy[column_name]
 	
 	classes = df[winner_name].value_counts().keys().tolist()
@@ -289,21 +289,21 @@ def buildDecisionTree(df,root,file):
 		elif subdataset.shape[1] == 1: #if decision cannot be made even though all columns dropped
 			final_decision = subdataset['Decision'].value_counts().idxmax() #get the most frequent one
 			terminateBuilding = True
-		elif algorithm == 'Regression' and subdataset.shape[0] < 5:
-		#elif algorithm == 'Regression' and subdataset['Decision'].std(ddof=0)/global_stdev < 0.4:
+		elif algorithm == 'Regression' and subdataset.shape[0] < 5: #pruning condition
+		#elif algorithm == 'Regression' and subdataset['Decision'].std(ddof=0)/global_stdev < 0.4: #pruning condition
 			final_decision = subdataset['Decision'].mean() #get average
 			terminateBuilding = True
 		
 		#-----------------------------------------------
 		
-		if terminateBuilding == True:
+		if terminateBuilding == True: #check decision is made
 			if dump_to_console == True:
 				print(formatRule(root),"if ",winner_name,compareTo,":")
 				print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
 			else:
 				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
 				storeRule(file,(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp))
-		else:
+		else: #decision is not made, continue to create branch and leafs
 			if dump_to_console == True:
 				print(formatRule(root),"if ",winner_name,compareTo,":")
 			else:
