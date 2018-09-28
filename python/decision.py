@@ -34,7 +34,7 @@ if df['Decision'].dtypes != 'object': #this must be regression tree even if it i
 
 print(algorithm," tree is going to be built...")
 
-dataset_features = dict() #initialize a dictionary. 
+dataset_features = dict() #initialize a dictionary. this is going to be used to check features numeric or nominal. numeric features should be transformed to nominal values based on scales.
 #------------------------
 
 def processContinuousFeatures(df, column_name, entropy):
