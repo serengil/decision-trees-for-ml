@@ -2,27 +2,37 @@ import pandas as pd
 import math
 import numpy as np
 import time
+import imp
 #------------------------
 
 algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
-enableRandomForest = False
+#------------------------
+
+enableRandomForest = True
 num_of_trees = 3 #this should be a prime number
 enableMultitasking = True
 
 dump_to_console = True #Set this True to print rules in console. Set this False to store rules in a flat file.
 
+enableGradientBoosting = True
+epoch = 5
 #------------------------
 #Data set
 #df = pd.read_csv("golf.txt") #nominal features and target
 #df = pd.read_csv("golf2.txt") #nominal and numeric features, nominal target
-#df = pd.read_csv("golf3.txt") #nominal features and numeric target
+df = pd.read_csv("golf3.txt") #nominal features and numeric target
 #df = pd.read_csv("golf4.txt") #nominal and numeric features, numeric target
-df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
+#df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
 #df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
-
+#df = pd.read_csv("data0.csv")
 #you can find these data sets at https://github.com/serengil/decision-trees-for-ml/tree/master/dataset
 #------------------------
+
+if enableGradientBoosting == True:
+	dump_to_console = False
+	if algorithm != 'Regression':
+		raise ValueError('gradient boosting must be applied for regression problems (for now). Change the data set.')
 
 if algorithm == 'Regression':
 	if df['Decision'].dtypes == 'object':
@@ -251,7 +261,13 @@ def buildDecisionTree(df,root,file):
 	df_copy = df.copy()
 	
 	winner_name = findDecision(df)
-	#print("winner is ",winner_name)
+	
+	#find winner index, this cannot be returned by find decision because columns dropped in previous steps
+	j = 0 
+	for i in dataset_features:
+		if i == winner_name:
+			winner_index = j
+		j = j + 1
 	
 	numericColumn = False
 	if dataset_features[winner_name] != 'object':
@@ -296,43 +312,107 @@ def buildDecisionTree(df,root,file):
 		
 		#-----------------------------------------------
 		
+		if dump_to_console == True:
+			print(formatRule(root),"if ",winner_name,compareTo,":")
+		else:
+			#storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
+			storeRule(file,(formatRule(root),"if obj[",str(winner_index),"]",compareTo,":"))
+		
+		#-----------------------------------------------
+		
 		if terminateBuilding == True: #check decision is made
 			if dump_to_console == True:
-				print(formatRule(root),"if ",winner_name,compareTo,":")
 				print(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp)
 			else:
-				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
 				storeRule(file,(formatRule(root+1),"return ",charForResp+str(final_decision)+charForResp))
 		else: #decision is not made, continue to create branch and leafs
-			if dump_to_console == True:
-				print(formatRule(root),"if ",winner_name,compareTo,":")
-			else:
-				storeRule(file,(formatRule(root),"if ",winner_name,compareTo,":"))
 			root = root + 1 #the following rule will be included by this rule. increase root
 			buildDecisionTree(subdataset,root,file)
 		
 		root = tmp_root * 1
 		
 #--------------------------
-header = "def findDecision("
-num_of_columns = df.shape[1]-1
-for i in range(0, num_of_columns):
-	if i > 0:
-		header = header + ","
-	header = header + df.columns[i]
-	
-	column_name = df.columns[i]
-	dataset_features[column_name] = df[column_name].dtypes
 
-header = header + "):\n"
+if(True): #header of rules files
+	header = "def findDecision("
+	num_of_columns = df.shape[1]-1
+	for i in range(0, num_of_columns):
+		if dump_to_console == True:
+			if i > 0:
+				header = header + ","
+			header = header + df.columns[i]
+		
+		column_name = df.columns[i]
+		dataset_features[column_name] = df[column_name].dtypes
 
-if dump_to_console == True:
-	print(header,end='')
+	if dump_to_console == False:
+		header = header + "obj"
+		
+	header = header + "):\n"
+
+	if dump_to_console == True:
+		print(header,end='')
 
 #--------------------------
 begin = time.time()
 
-if enableRandomForest == False:
+if enableGradientBoosting == True:
+	
+	root = 1
+	file = "rules0.py"
+	if dump_to_console == False:
+		createFile(file, header)
+	
+	buildDecisionTree(df,root,file) #generate rules0
+	
+	#------------------------------
+	
+	for index in range(1,epoch):	
+		#run data(i-1) and rules(i-1), save data1
+		
+		#dynamic import
+		moduleName = "rules%s" % (index-1)
+		fp, pathname, description = imp.find_module(moduleName)
+		myrules = imp.load_module(moduleName, fp, pathname, description) #rules0
+		
+		new_data_set = "data%s.csv" % (index)
+		f = open(new_data_set, "w")
+		
+		#put header in the following file
+		columns = df.shape[1]
+		
+		for i, instance in df.iterrows():
+			params = []
+			line = ""
+			for j in range(0, columns-1):
+				params.append(instance[j])
+				if j > 0:
+					line = line + ","
+				line = line + instance[j]
+			
+			
+			prediction = myrules.findDecision(params) #apply rules(i-1) for data(i-1)
+			actual = instance[columns-1]
+			error = actual - prediction
+			
+			instance[columns-1] = error
+			
+			df.loc[i] = instance
+		
+		df.to_csv(new_data_set, index=False)
+		#data(i) created
+		#---------------------------------
+		
+		file = "rules"+str(index)+".py"
+		
+		if dump_to_console == False:
+			createFile(file, header)
+		
+		buildDecisionTree(df,root,file)
+		#rules(i) created
+		#---------------------------------
+	
+elif enableRandomForest == False:
 	root = 1
 	
 	file = "rules.py"
@@ -383,3 +463,4 @@ else:
 				pool.starmap(buildDecisionTree, subsets)
 			
 			print("finished in ",time.time() - begin," seconds")
+
