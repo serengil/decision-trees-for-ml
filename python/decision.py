@@ -19,20 +19,14 @@ enableGradientBoosting = True
 epoch = 5
 #------------------------
 #Data set
-#df = pd.read_csv("golf.txt") #nominal features and target
-#df = pd.read_csv("golf2.txt") #nominal and numeric features, nominal target
-df = pd.read_csv("golf3.txt") #nominal features and numeric target
-#df = pd.read_csv("golf4.txt") #nominal and numeric features, numeric target
-#df = pd.read_csv("car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
-#df = pd.read_csv("iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
-#df = pd.read_csv("data0.csv")
+#df = pd.read_csv("/dataset/golf.txt") #nominal features and target
+#df = pd.read_csv("/dataset/golf2.txt") #nominal and numeric features, nominal target
+df = pd.read_csv("dataset/golf3.txt") #nominal features and numeric target
+#df = pd.read_csv("/dataset/golf4.txt") #nominal and numeric features, numeric target
+#df = pd.read_csv("/dataset/car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
+#df = pd.read_csv("/dataset/iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 #you can find these data sets at https://github.com/serengil/decision-trees-for-ml/tree/master/dataset
 #------------------------
-
-if enableGradientBoosting == True:
-	dump_to_console = False
-	if algorithm != 'Regression':
-		raise ValueError('gradient boosting must be applied for regression problems (for now). Change the data set.')
 
 if algorithm == 'Regression':
 	if df['Decision'].dtypes == 'object':
@@ -41,6 +35,11 @@ if algorithm == 'Regression':
 if df['Decision'].dtypes != 'object': #this must be regression tree even if it is not mentioned in algorithm
 	algorithm = 'Regression'
 	global_stdev = df['Decision'].std(ddof=0)
+
+if enableGradientBoosting == True:
+	dump_to_console = False
+	if algorithm != 'Regression':
+		raise ValueError('gradient boosting must be applied for regression problems (for now). Change the data set.')
 
 print(algorithm," tree is going to be built...")
 
