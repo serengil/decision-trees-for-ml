@@ -16,15 +16,16 @@ enableMultitasking = True
 dump_to_console = True #Set this True to print rules in console. Set this False to store rules in a flat file.
 
 enableGradientBoosting = True
-epoch = 5
+epoch = 10
+learning_rate = 0.1
 #------------------------
 #Data set
-#df = pd.read_csv("/dataset/golf.txt") #nominal features and target
-#df = pd.read_csv("/dataset/golf2.txt") #nominal and numeric features, nominal target
+#df = pd.read_csv("dataset/golf.txt") #nominal features and target
+#df = pd.read_csv("dataset/golf2.txt") #nominal and numeric features, nominal target
 df = pd.read_csv("dataset/golf3.txt") #nominal features and numeric target
-#df = pd.read_csv("/dataset/golf4.txt") #nominal and numeric features, numeric target
-#df = pd.read_csv("/dataset/car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
-#df = pd.read_csv("/dataset/iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
+#df = pd.read_csv("dataset/golf4.txt") #nominal and numeric features, numeric target
+#df = pd.read_csv("dataset/car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
+#df = pd.read_csv("dataset/iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 #you can find these data sets at https://github.com/serengil/decision-trees-for-ml/tree/master/dataset
 #------------------------
 
@@ -392,9 +393,14 @@ if enableGradientBoosting == True:
 			
 			prediction = myrules.findDecision(params) #apply rules(i-1) for data(i-1)
 			actual = instance[columns-1]
-			error = actual - prediction
 			
-			instance[columns-1] = error
+			#print(prediction)
+			
+			#loss was ((actual - prediction)^2) / 2
+			#this is partial derivative of loss function with respect to the actual
+			gradient = actual - prediction
+			
+			instance[columns-1] = gradient
 			
 			df.loc[i] = instance
 		
