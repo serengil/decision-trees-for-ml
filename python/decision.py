@@ -17,7 +17,7 @@ dump_to_console = True #Set this True to print rules in console. Set this False 
 
 enableGradientBoosting = True
 epoch = 10
-learning_rate = 0.1
+learning_rate = 1
 #------------------------
 #Data set
 #df = pd.read_csv("dataset/golf.txt") #nominal features and target
@@ -394,11 +394,13 @@ if enableGradientBoosting == True:
 			prediction = myrules.findDecision(params) #apply rules(i-1) for data(i-1)
 			actual = instance[columns-1]
 			
-			#print(prediction)
+			print(prediction)
 			
 			#loss was ((actual - prediction)^2) / 2
-			#this is partial derivative of loss function with respect to the actual
-			gradient = actual - prediction
+			#partial derivative of loss function with respect to the prediction is prediction - actual
+			#y' = y' - alpha * gradient = y' - alpha * (prediction - actual) = y' = y' + alpha * (actual - prediction)
+			#whereas y' is prediction and alpha is learning rate
+			gradient = learning_rate*(actual - prediction)
 			
 			instance[columns-1] = gradient
 			
