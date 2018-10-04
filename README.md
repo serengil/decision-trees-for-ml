@@ -26,6 +26,12 @@ Moreover, you might want to apply random forest. Please set this to True in this
 enableRandomForest = False
 ```
 
+Furthermore, you can apply gradient boosting regression trees.
+
+```
+enableGradientBoosting = True
+```
+
 Finally, you can change the data set to build different decision trees. Just pass the file name, and its column names if it does not exist.
 
 ```
