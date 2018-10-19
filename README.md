@@ -14,7 +14,7 @@ Course: https://www.udemy.com/decision-trees-for-machine-learning/?couponCode=DT
 
 5- Random Forest - [Documentation](https://sefiks.com/2017/11/19/how-random-forests-can-keep-you-from-decision-tree/)
 
-6- Gradient Boosting Decision Trees [Documentation](https://sefiks.com/2018/10/04/a-step-by-step-gradient-boosting-decision-tree-example/)
+6- Gradient Boosting Decision Trees - [Documentation](https://sefiks.com/2018/10/04/a-step-by-step-gradient-boosting-decision-tree-example/)
 
 Just call the [decision.py](/python/decision.py) file to run the program. You might want to change the running algorithm. You just need to set algorithm variable.
 
