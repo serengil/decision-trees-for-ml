@@ -9,24 +9,26 @@ algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
 #------------------------
 
-enableRandomForest = True
+enableRandomForest = False
 num_of_trees = 3 #this should be a prime number
 enableMultitasking = True
 
-dump_to_console = True #Set this True to print rules in console. Set this False to store rules in a flat file.
+dump_to_console = False #Set this True to print rules in console. Set this False to store rules in a flat file.
 
 enableGradientBoosting = True
-epoch = 10
+epochs = 10
 learning_rate = 1
 #------------------------
 #Data set
 #df = pd.read_csv("dataset/golf.txt") #nominal features and target
 #df = pd.read_csv("dataset/golf2.txt") #nominal and numeric features, nominal target
-df = pd.read_csv("dataset/golf3.txt") #nominal features and numeric target
+#df = pd.read_csv("dataset/golf3.txt") #nominal features and numeric target
 #df = pd.read_csv("dataset/golf4.txt") #nominal and numeric features, numeric target
 #df = pd.read_csv("dataset/car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
-#df = pd.read_csv("dataset/iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
+df = pd.read_csv("dataset/iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
 #you can find these data sets at https://github.com/serengil/decision-trees-for-ml/tree/master/dataset
+
+dataset = df.copy()
 #------------------------
 
 if algorithm == 'Regression':
@@ -39,14 +41,20 @@ if df['Decision'].dtypes != 'object': #this must be regression tree even if it i
 
 if enableGradientBoosting == True:
 	dump_to_console = False
-	if algorithm != 'Regression':
-		raise ValueError('gradient boosting must be applied for regression problems (for now). Change the data set.')
+	algorithm = 'Regression'
+	"""if algorithm != 'Regression':
+		raise ValueError('gradient boosting must be applied for regression problems (for now). Change the data set.')"""
 
 print(algorithm," tree is going to be built...")
 
 dataset_features = dict() #initialize a dictionary. this is going to be used to check features numeric or nominal. numeric features should be transformed to nominal values based on scales.
 #------------------------
 
+def softmax(w):
+	e = np.exp(np.array(w))
+	dist = e / np.sum(e)
+	return dist
+	
 def processContinuousFeatures(df, column_name, entropy):
 	unique_values = sorted(df[column_name].unique())
 	#print(column_name,"->",unique_values)
@@ -309,7 +317,6 @@ def buildDecisionTree(df,root,file):
 		#elif algorithm == 'Regression' and subdataset['Decision'].std(ddof=0)/global_stdev < 0.4: #pruning condition
 			final_decision = subdataset['Decision'].mean() #get average
 			terminateBuilding = True
-		
 		#-----------------------------------------------
 		
 		if dump_to_console == True:
@@ -358,66 +365,156 @@ begin = time.time()
 
 if enableGradientBoosting == True:
 	
-	root = 1
-	file = "rules0.py"
-	if dump_to_console == False:
-		createFile(file, header)
-	
-	buildDecisionTree(df,root,file) #generate rules0
-	
-	#------------------------------
-	
-	for index in range(1,epoch):	
-		#run data(i-1) and rules(i-1), save data1
+	if df['Decision'].dtypes == 'object':
+		#transform classification problem to regression
 		
-		#dynamic import
-		moduleName = "rules%s" % (index-1)
-		fp, pathname, description = imp.find_module(moduleName)
-		myrules = imp.load_module(moduleName, fp, pathname, description) #rules0
+		print("gradient boosting for classification")
+		temp_df = df.copy()
+		original_dataset = df.copy()
+		worksheet = df.copy()
 		
-		new_data_set = "data%s.csv" % (index)
-		f = open(new_data_set, "w")
+		classes = df['Decision'].unique()
 		
-		#put header in the following file
-		columns = df.shape[1]
+		boosted_predictions = np.zeros([df.shape[0], len(classes)])
 		
-		for i, instance in df.iterrows():
-			params = []
-			line = ""
-			for j in range(0, columns-1):
-				params.append(instance[j])
-				if j > 0:
-					line = line + ","
-				line = line + instance[j]
+		for epoch in range(0, epochs):
+			for i in range(0, len(classes)):
+				current_class = classes[i]
+				
+				if epoch == 0:
+					temp_df['Decision'] = np.where(df['Decision'] == current_class, 1, 0)
+					worksheet['Y_'+str(i)] = temp_df['Decision']
+				else:
+					temp_df['Decision'] = worksheet['Y-P_'+str(i)]
+				
+				predictions = []
+				
+				#change data type for decision column
+				temp_df[['Decision']].astype('int64')
+				
+				root = 1
+				file = "rules-for-"+current_class+".py"
+				
+				if dump_to_console == False: createFile(file, header)
+				
+				buildDecisionTree(temp_df,root,file)
+				#decision rules created
+				#----------------------------
+				
+				#dynamic import
+				moduleName = "rules-for-"+current_class
+				fp, pathname, description = imp.find_module(moduleName)
+				myrules = imp.load_module(moduleName, fp, pathname, description) #rules0
+				
+				num_of_columns = df.shape[1]
+				
+				for row, instance in df.iterrows():
+					features = []
+					for j in range(0, num_of_columns-1): #iterate on features
+						features.append(instance[j])
+					
+					actual = temp_df.loc[row]['Decision']
+					prediction = myrules.findDecision(features)
+					predictions.append(prediction)
+						
+				#----------------------------
+				if epoch == 0:
+					worksheet['F_'+str(i)] = 0
+				else:
+					worksheet['F_'+str(i)] = pd.Series(predictions).values
+					
+				boosted_predictions[:,i] = boosted_predictions[:,i] + worksheet['F_'+str(i)].values
+				
+				worksheet['P_'+str(i)] = 0
+				
+				#----------------------------
+				temp_df = df.copy() #restoration
 			
+			for row, instance in worksheet.iterrows():
+				f_scores = []
+				for i in range(0, len(classes)):
+					f_scores.append(instance['F_'+str(i)])
+				
+				probabilities = softmax(f_scores)
+				
+				for j in range(0, len(probabilities)):
+					instance['P_'+str(j)] = probabilities[j]
+				
+				worksheet.loc[row] = instance
 			
-			prediction = myrules.findDecision(params) #apply rules(i-1) for data(i-1)
-			actual = instance[columns-1]
+			for i in range(0, len(classes)):
+				worksheet['Y-P_'+str(i)] = worksheet['Y_'+str(i)] - worksheet['P_'+str(i)]
 			
-			print(prediction)
+			print("round ",epoch+1)
+			"""print(worksheet.head())
+			print("------------------")"""
 			
-			#loss was ((actual - prediction)^2) / 2
-			#partial derivative of loss function with respect to the prediction is prediction - actual
-			#y' = y' - alpha * gradient = y' - alpha * (prediction - actual) = y' = y' + alpha * (actual - prediction)
-			#whereas y' is prediction and alpha is learning rate
-			gradient = learning_rate*(actual - prediction)
+		"""print("boosted predictions:")
+		for i in range(0, boosted_predictions.shape[0]):
+			max_index = np.argmax(boosted_predictions[i])
+			print(max_index)"""
 			
-			instance[columns-1] = gradient
-			
-			df.loc[i] = instance
-		
-		df.to_csv(new_data_set, index=False)
-		#data(i) created
-		#---------------------------------
-		
-		file = "rules"+str(index)+".py"
-		
+	else: #regression problem
+		root = 1
+		file = "rules0.py"
 		if dump_to_console == False:
 			createFile(file, header)
 		
-		buildDecisionTree(df,root,file)
-		#rules(i) created
-		#---------------------------------
+		buildDecisionTree(df,root,file) #generate rules0
+		
+		#------------------------------
+		
+		for index in range(1,epochs):	
+			#run data(i-1) and rules(i-1), save data1
+			
+			#dynamic import
+			moduleName = "rules%s" % (index-1)
+			fp, pathname, description = imp.find_module(moduleName)
+			myrules = imp.load_module(moduleName, fp, pathname, description) #rules0
+			
+			new_data_set = "data%s.csv" % (index)
+			f = open(new_data_set, "w")
+			
+			#put header in the following file
+			columns = df.shape[1]
+			
+			for i, instance in df.iterrows():
+				params = []
+				line = ""
+				for j in range(0, columns-1):
+					params.append(instance[j])
+					if j > 0:
+						line = line + ","
+					line = line + instance[j]
+				
+				
+				prediction = myrules.findDecision(params) #apply rules(i-1) for data(i-1)
+				actual = instance[columns-1]
+				
+				print(prediction)
+				
+				#loss was ((actual - prediction)^2) / 2
+				#partial derivative of loss function with respect to the prediction is prediction - actual
+				#y' = y' - alpha * gradient = y' - alpha * (prediction - actual) = y' = y' + alpha * (actual - prediction)
+				#whereas y' is prediction and alpha is learning rate
+				gradient = learning_rate*(actual - prediction)
+				
+				instance[columns-1] = gradient
+				
+				df.loc[i] = instance
+			
+			df.to_csv(new_data_set, index=False)
+			#data(i) created
+			#---------------------------------
+			
+			file = "rules"+str(index)+".py"
+			
+			if dump_to_console == False:
+				createFile(file, header)
+			
+			buildDecisionTree(df,root,file)
+			#rules(i) created
+			#---------------------------------
 	
 elif enableRandomForest == False:
 	root = 1
@@ -428,9 +525,10 @@ elif enableRandomForest == False:
 		createFile(file, header)
 	
 	buildDecisionTree(df,root,file)
+	
 	print("finished in ",time.time() - begin," seconds")
 	
-else: 
+else: #Random Forest
 	
 	if enableMultitasking == False: #serial
 		
