@@ -8,24 +8,28 @@ import imp
 algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
 #------------------------
+#parameters
 
 enableRandomForest = False
 num_of_trees = 3 #this should be a prime number
 enableMultitasking = True
 
-dump_to_console = False #Set this True to print rules in console. Set this False to store rules in a flat file.
+dump_to_console = True #Set this True to print rules in console. Set this False to store rules in a flat file.
 
-enableGradientBoosting = True
+enableGradientBoosting = False
 epochs = 10
 learning_rate = 1
+
+enableDecisionStump = False
 #------------------------
 #Data set
 #df = pd.read_csv("dataset/golf.txt") #nominal features and target
 #df = pd.read_csv("dataset/golf2.txt") #nominal and numeric features, nominal target
-#df = pd.read_csv("dataset/golf3.txt") #nominal features and numeric target
+df = pd.read_csv("dataset/golf3.txt") #nominal features and numeric target
 #df = pd.read_csv("dataset/golf4.txt") #nominal and numeric features, numeric target
 #df = pd.read_csv("dataset/car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
-df = pd.read_csv("dataset/iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
+#df = pd.read_csv("dataset/iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
+#df = pd.read_csv("dataset/adaboost.txt")
 #you can find these data sets at https://github.com/serengil/decision-trees-for-ml/tree/master/dataset
 
 dataset = df.copy()
@@ -307,6 +311,11 @@ def buildDecisionTree(df,root,file):
 		#-----------------------------------------------
 		#can decision be made?
 		
+		if enableDecisionStump == True:
+			#final_decision = subdataset['Decision'].value_counts().idxmax()
+			final_decision = subdataset['Decision'].mean() #get average
+			terminateBuilding = True
+		
 		if len(subdataset['Decision'].value_counts().tolist()) == 1:
 			final_decision = subdataset['Decision'].value_counts().keys().tolist()[0] #all items are equal in this case
 			terminateBuilding = True
@@ -365,8 +374,7 @@ begin = time.time()
 
 if enableGradientBoosting == True:
 	
-	if df['Decision'].dtypes == 'object':
-		#transform classification problem to regression
+	if df['Decision'].dtypes == 'object': #transform classification problem to regression
 		
 		print("gradient boosting for classification")
 		temp_df = df.copy()
@@ -516,7 +524,7 @@ if enableGradientBoosting == True:
 			#rules(i) created
 			#---------------------------------
 	
-elif enableRandomForest == False:
+elif enableRandomForest == False: #standard decision tree building
 	root = 1
 	
 	file = "rules.py"
