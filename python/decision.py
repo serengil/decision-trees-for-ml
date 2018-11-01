@@ -14,22 +14,22 @@ enableRandomForest = False
 num_of_trees = 3 #this should be a prime number
 enableMultitasking = True
 
-dump_to_console = True #Set this True to print rules in console. Set this False to store rules in a flat file.
+dump_to_console = False #Set this True to print rules in console. Set this False to store rules in a flat file.
 
 enableGradientBoosting = False
 epochs = 10
 learning_rate = 1
 
-enableDecisionStump = False
+enableAdaboost = True
 #------------------------
 #Data set
 #df = pd.read_csv("dataset/golf.txt") #nominal features and target
 #df = pd.read_csv("dataset/golf2.txt") #nominal and numeric features, nominal target
-df = pd.read_csv("dataset/golf3.txt") #nominal features and numeric target
+#df = pd.read_csv("dataset/golf3.txt") #nominal features and numeric target
 #df = pd.read_csv("dataset/golf4.txt") #nominal and numeric features, numeric target
 #df = pd.read_csv("dataset/car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
 #df = pd.read_csv("dataset/iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
-#df = pd.read_csv("dataset/adaboost.txt")
+df = pd.read_csv("dataset/adaboost.txt")
 #you can find these data sets at https://github.com/serengil/decision-trees-for-ml/tree/master/dataset
 
 dataset = df.copy()
@@ -58,6 +58,14 @@ def softmax(w):
 	e = np.exp(np.array(w))
 	dist = e / np.sum(e)
 	return dist
+
+def sign(x):
+	if x > 0:
+		return 1
+	elif x < 0:
+		return -1
+	else:
+		return 0
 	
 def processContinuousFeatures(df, column_name, entropy):
 	unique_values = sorted(df[column_name].unique())
@@ -311,12 +319,11 @@ def buildDecisionTree(df,root,file):
 		#-----------------------------------------------
 		#can decision be made?
 		
-		if enableDecisionStump == True:
+		if enableAdaboost == True:
 			#final_decision = subdataset['Decision'].value_counts().idxmax()
 			final_decision = subdataset['Decision'].mean() #get average
 			terminateBuilding = True
-		
-		if len(subdataset['Decision'].value_counts().tolist()) == 1:
+		elif len(subdataset['Decision'].value_counts().tolist()) == 1:
 			final_decision = subdataset['Decision'].value_counts().keys().tolist()[0] #all items are equal in this case
 			terminateBuilding = True
 		elif subdataset.shape[1] == 1: #if decision cannot be made even though all columns dropped
@@ -372,7 +379,86 @@ if(True): #header of rules files
 #--------------------------
 begin = time.time()
 
-if enableGradientBoosting == True:
+if enableAdaboost == True:
+	
+	rows = df.shape[0]; columns = df.shape[1]
+	final_predictions = pd.DataFrame(np.zeros([rows, 1]), columns=['prediction'])
+	
+	worksheet = df.copy()
+	worksheet['weight'] = 1 / rows
+	
+	tmp_df = df.copy()
+	tmp_df['Decision'] = worksheet['weight'] * tmp_df['Decision'] #normal distribution
+	
+	for i in range(0, 4):	
+		root = 1
+		file = "rules_"+str(i)+".py"
+		
+		if dump_to_console == False: createFile(file, header)
+		
+		print(tmp_df)
+		buildDecisionTree(tmp_df,root,file)
+		
+		moduleName = "rules_"+str(i)
+		fp, pathname, description = imp.find_module(moduleName)
+		rules = imp.load_module(moduleName, fp, pathname, description) #rules0
+		
+		predictions = []; losses = []
+		
+		for row, instance in dataset.iterrows():
+			features = []
+			for j in range(0, columns):
+				features.append(instance[j])
+			
+			prediction = rules.findDecision(features)
+			actual = instance['Decision']
+			#print(actual," - ",prediction)
+			
+			prediction = sign(prediction)
+			actual = sign(actual)
+			#print(actual," - ",prediction)
+			print(prediction)
+			
+			if actual == prediction: loss = 0
+			else: loss = 1
+			
+			predictions.append(prediction)
+			losses.append(loss)
+			
+		worksheet['prediction'] = pd.Series(predictions).values
+		worksheet['loss'] = pd.Series(losses).values
+		
+		worksheet['w*l'] = worksheet['weight'] * worksheet['loss']
+		error = worksheet['w*l'].sum()
+		alpha = math.log((1-error)/error)/2
+		worksheet['alpha'] = alpha
+		
+		final_predictions['prediction'] = final_predictions['prediction'] + alpha * worksheet['prediction']
+		
+		print("error in this round: ",error)
+		print("alpha in this round: ",alpha)
+		
+		#worksheet['weight']*math.exp(-worksheet['alpha']*worksheet['Decision']*worksheet['prediction'])
+		
+		worksheet['weight_t+1'] = worksheet['weight']*np.exp(-worksheet['alpha']*worksheet['Decision']*worksheet['prediction'])
+		
+		#normalize
+		worksheet['weight_t+1'] = worksheet['weight_t+1'] / worksheet['weight_t+1'].sum()
+		
+		print(worksheet)
+		
+		tmp_df = df.copy()
+		tmp_df['Decision'] = worksheet['weight_t+1'] * tmp_df['Decision']
+		worksheet['weight'] = worksheet['weight_t+1']
+		
+		print("-------------------------")
+	
+	print(final_predictions)
+	
+	for row, instance in final_predictions.iterrows():
+		print("actual: ",df.loc[row]['Decision'],", prediction: ",sign(instance['prediction'])," (",df.loc[row]['Decision'] == sign(instance['prediction']),")")
+	
+elif enableGradientBoosting == True:
 	
 	if df['Decision'].dtypes == 'object': #transform classification problem to regression
 		
