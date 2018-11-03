@@ -14,7 +14,9 @@ Course: https://www.udemy.com/decision-trees-for-machine-learning/?couponCode=DT
 
 5- Random Forest - [Documentation](https://sefiks.com/2017/11/19/how-random-forests-can-keep-you-from-decision-tree/)
 
-6- Gradient Boosting Decision Trees - [Documentation](https://sefiks.com/2018/10/04/a-step-by-step-gradient-boosting-decision-tree-example/)
+6- Gradient Boosting Decision Trees - [Documentation 1](https://sefiks.com/2018/10/04/a-step-by-step-gradient-boosting-decision-tree-example/), [Documentation 2](https://sefiks.com/2018/10/29/a-step-by-step-gradient-boosting-example-for-classification/)
+
+7- Adaboost - [Documentation](https://sefiks.com/2018/11/02/a-step-by-step-adaboost-example/)
 
 Just call the [decision.py](/python/decision.py) file to run the program. You might want to change the running algorithm. You just need to set algorithm variable.
 
@@ -32,6 +34,12 @@ Furthermore, you can apply gradient boosting regression trees.
 
 ```
 enableGradientBoosting = True
+```
+
+Besides, adaptive boosting is allowed to run
+
+```
+enableAdaboost = True
 ```
 
 Finally, you can change the data set to build different decision trees. Just pass the file name, and its column names if it does not exist.
