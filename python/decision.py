@@ -12,7 +12,7 @@ algorithm = "C4.5" #ID3, C4.5, CART, Regression
 
 enableRandomForest = False
 num_of_trees = 3 #this should be a prime number
-enableMultitasking = True
+enableMultitasking = False
 
 dump_to_console = False #Set this True to print rules in console. Set this False to store rules in a flat file.
 
@@ -20,16 +20,16 @@ enableGradientBoosting = False
 epochs = 10
 learning_rate = 1
 
-enableAdaboost = True
+enableAdaboost = False
 #------------------------
 #Data set
-#df = pd.read_csv("dataset/golf.txt") #nominal features and target
+df = pd.read_csv("dataset/golf.txt") #nominal features and target
 #df = pd.read_csv("dataset/golf2.txt") #nominal and numeric features, nominal target
 #df = pd.read_csv("dataset/golf3.txt") #nominal features and numeric target
 #df = pd.read_csv("dataset/golf4.txt") #nominal and numeric features, numeric target
 #df = pd.read_csv("dataset/car.data",names=["buying","maint","doors","persons","lug_boot","safety","Decision"])
 #df = pd.read_csv("dataset/iris.data", names=["Sepal length","Sepal width","Petal length","Petal width","Decision"])
-df = pd.read_csv("dataset/adaboost.txt")
+#df = pd.read_csv("dataset/adaboost.txt")
 #you can find these data sets at https://github.com/serengil/decision-trees-for-ml/tree/master/dataset
 
 dataset = df.copy()
