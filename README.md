@@ -10,13 +10,13 @@ This is the repository of **[Decision Trees for Machine Learning](https://www.ud
 
 4- [Regression Trees (CART for regression)](https://sefiks.com/2018/08/28/a-step-by-step-regression-decision-tree-example/)
 
-5- Random Forest - [Documentation](https://sefiks.com/2017/11/19/how-random-forests-can-keep-you-from-decision-tree/)
+5- [Random Forest](https://sefiks.com/2017/11/19/how-random-forests-can-keep-you-from-decision-tree/)
 
 6- [Gradient Boosting Decision Trees for Regression](https://sefiks.com/2018/10/04/a-step-by-step-gradient-boosting-decision-tree-example/)
 
 7- [Gradient Boosting Decision Trees for Classification](https://sefiks.com/2018/10/29/a-step-by-step-gradient-boosting-example-for-classification/)
 
-8- Adaboost - [Documentation](https://sefiks.com/2018/11/02/a-step-by-step-adaboost-example/)
+8- [Adaboost](https://sefiks.com/2018/11/02/a-step-by-step-adaboost-example/)
 
 Just call the [decision.py](/python/decision.py) file to run the program. You might want to change the running algorithm. You just need to set algorithm variable.
 
