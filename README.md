@@ -1,8 +1,6 @@
 # Decision Trees for Machine Learning
 
-This is the repository of Decision Trees for Machine Learning online course published on Udemy. In this course, the following algorithms will be covered. All project is going to be developed on Python (3.6.4), and neither out-of-the-box library nor framework will be used to build decision trees.
-
-Course: https://www.udemy.com/decision-trees-for-machine-learning/?couponCode=DTML-BLOG-18 **(90% OFF over the regular price)**
+This is the repository of **[Decision Trees for Machine Learning](https://www.udemy.com/decision-trees-for-machine-learning/?couponCode=DTML-BLOG-18)** online course published on Udemy. In this course, the following algorithms will be covered. All project is going to be developed on Python (3.6.4), and neither out-of-the-box library nor framework will be used to build decision trees.
 
 1- ID3 - [Documentation](https://sefiks.com/2017/11/20/a-step-by-step-id3-decision-tree-example/)
 
@@ -14,7 +12,7 @@ Course: https://www.udemy.com/decision-trees-for-machine-learning/?couponCode=DT
 
 5- Random Forest - [Documentation](https://sefiks.com/2017/11/19/how-random-forests-can-keep-you-from-decision-tree/)
 
-6- Gradient Boosting Decision Trees - [Documentation 1](https://sefiks.com/2018/10/04/a-step-by-step-gradient-boosting-decision-tree-example/), [Documentation 2](https://sefiks.com/2018/10/29/a-step-by-step-gradient-boosting-example-for-classification/)
+6- Gradient Boosting Decision Trees - [Documentation for Regression](https://sefiks.com/2018/10/04/a-step-by-step-gradient-boosting-decision-tree-example/), [Classification](https://sefiks.com/2018/10/29/a-step-by-step-gradient-boosting-example-for-classification/)
 
 7- Adaboost - [Documentation](https://sefiks.com/2018/11/02/a-step-by-step-adaboost-example/)
 
