@@ -63,3 +63,7 @@ pip install numpy
 # Updates
 
 To keep yourself up-to-date you might check posts in my blog about [decision trees](https://sefiks.com/tag/decision-tree/) 
+
+# License
+
+Chefboost is licensed under the MIT License - see [LICENSE](https://github.com/serengil/decision-trees-for-ml/blob/master/LICENSE) for more details.
