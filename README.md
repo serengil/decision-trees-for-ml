@@ -2,7 +2,7 @@
 
 **Disclaimer:** This repository is a sketchbook learning the background of decision tree algorithms. It is neither clean nor readable. Please direct yourself to [**Chefboost**](https://github.com/serengil/chefboost) repository to have clean one. 
 
-This is the repository of **[Decision Trees for Machine Learning](https://www.udemy.com/decision-trees-for-machine-learning/?couponCode=DTML-BLOG-18)** online course published on Udemy. In this course, the following algorithms will be covered. All project is going to be developed on Python (3.6.4), and neither out-of-the-box library nor framework will be used to build decision trees.
+This is the repository of **[Decision Trees for Machine Learning](https://www.udemy.com/course/decision-trees-for-machine-learning/?referralCode=FDC9B836EC6DAA1A663A)** online course published on Udemy. In this course, the following algorithms will be covered. All project is going to be developed on Python (3.6.4), and neither out-of-the-box library nor framework will be used to build decision trees.
 
 1- [ID3](https://sefiks.com/2017/11/20/a-step-by-step-id3-decision-tree-example/)
 
