@@ -2,7 +2,8 @@ import pandas as pd
 import math
 import numpy as np
 import time
-import imp
+import importlib.util
+import importlib.machinery
 import argparse
 #------------------------
 
@@ -398,8 +399,11 @@ if __name__ == "__main__":
             buildDecisionTree(tmp_df,root,file)
             
             moduleName = "rules_"+str(i)
-            fp, pathname, description = imp.find_module(moduleName)
-            rules = imp.load_module(moduleName, fp, pathname, description) #rules0
+            rules = dynamic_import(moduleName, file)
+            if rules:
+                rules.findDecision #rules0
+            else:
+                print(f"Failed to import rules from {file}")
             
             predictions = []; losses = []
             
@@ -495,8 +499,11 @@ if __name__ == "__main__":
                     
                     #dynamic import
                     moduleName = "rules-for-"+current_class
-                    fp, pathname, description = imp.find_module(moduleName)
-                    myrules = imp.load_module(moduleName, fp, pathname, description) #rules0
+                    rules = dynamic_import(moduleName, file)
+                    if rules:
+                        rules.findDecision #rules0
+                    else:
+                        print(f"Failed to import rules from {file}")
                     
                     num_of_columns = df.shape[1]
                     
@@ -506,7 +513,7 @@ if __name__ == "__main__":
                             features.append(instance[j])
                         
                         actual = temp_df.loc[row]['Decision']
-                        prediction = myrules.findDecision(features)
+                        prediction = rules.findDecision(features)
                         predictions.append(prediction)
                             
                     #----------------------------
@@ -561,8 +568,11 @@ if __name__ == "__main__":
                 
                 #dynamic import
                 moduleName = "rules%s" % (index-1)
-                fp, pathname, description = imp.find_module(moduleName)
-                myrules = imp.load_module(moduleName, fp, pathname, description) #rules0
+                rules = dynamic_import(moduleName, file)
+                if rules:
+                    rules.findDecision #rules(i-1)
+                else:
+                    print(f"Failed to import rules from {file}")
                 
                 new_data_set = "data%s.csv" % (index)
                 f = open(new_data_set, "w")
@@ -580,7 +590,7 @@ if __name__ == "__main__":
                         line = line + instance[j]
                     
                     
-                    prediction = myrules.findDecision(params) #apply rules(i-1) for data(i-1)
+                    prediction = rules.findDecision(params) #apply rules(i-1) for data(i-1)
                     actual = instance[columns-1]
                     
                     print(prediction)
