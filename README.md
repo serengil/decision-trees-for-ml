@@ -53,14 +53,6 @@ df = pd.read_csv("car.data"
 )
 ```
 
-# Prerequisites
-
-Install the required Python packages using the following command:
-
-```
-pip install -r requirements.txt
-```
-
 # Updates
 
 To keep yourself up-to-date you might check posts in my blog about [decision trees](https://sefiks.com/tag/decision-tree/) 
@@ -223,23 +215,6 @@ For ensemble methods (Random Forest, Gradient Boosting, Adaboost), multiple rule
 - **Wrong predictions:** Ensure your feature vector matches the dataset column order
 - **Import errors:** Make sure the generated rules file is in your Python path
 
-# Using a Virtual Environment
-
-It is recommended to use a Python virtual environment to manage dependencies for this project. This helps avoid conflicts with other Python projects on your system.
-
-To create and activate a virtual environment (Windows):
-
-```
-python -m venv .venv
-.venv\Scripts\activate
-```
-
-To install dependencies inside the virtual environment:
-
-```
-pip install -r requirements.txt
-```
-
 # Running with Command-Line Arguments
 
 You can now configure the script without editing the code by using command-line arguments:
@@ -269,7 +244,6 @@ python python/decision.py --algorithm ID3 --dataset dataset/golf.txt --dump-to-c
 
 ## Prerequisites
 - Python 3.6 or higher
-- (Recommended) Use a virtual environment to avoid dependency conflicts
 
 ## Setup
 
@@ -279,13 +253,7 @@ python python/decision.py --algorithm ID3 --dataset dataset/golf.txt --dump-to-c
    cd decision-trees-for-ml
    ```
 
-2. **Create and activate a virtual environment (Windows):**
-   ```
-   python -m venv .venv
-   .venv\Scripts\activate
-   ```
-
-3. **Install dependencies:**
+2. **Install dependencies:**
    ```
    pip install -r requirements.txt
    ```
