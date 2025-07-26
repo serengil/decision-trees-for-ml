@@ -55,11 +55,10 @@ df = pd.read_csv("car.data"
 
 # Prerequisites
 
-Pandas and numpy python libraries are used to load data sets in this repository. You might run the following commands to install these packages if you are going to use them first time.
+Install the required Python packages using the following command:
 
 ```
-pip install pandas
-pip install numpy
+pip install -r requirements.txt
 ```
 
 # Updates
