@@ -222,3 +222,59 @@ For ensemble methods (Random Forest, Gradient Boosting, Adaboost), multiple rule
 - **No output files generated:** Check that `dump_to_console = False` in the script
 - **Wrong predictions:** Ensure your feature vector matches the dataset column order
 - **Import errors:** Make sure the generated rules file is in your Python path
+
+# Getting Started
+
+## Prerequisites
+- Python 3.6 or higher
+
+## Setup
+
+1. **Clone the repository:**
+   ```
+   git clone https://github.com/yourusername/decision-trees-for-ml.git
+   cd decision-trees-for-ml
+   ```
+
+2. **Install dependencies:**
+   ```
+   pip install -r requirements.txt
+   ```
+
+# How to Run
+
+You can run the main script with various options using command-line arguments.
+
+**Basic usage:**
+```
+python python/decision.py
+```
+
+**Specify algorithm and dataset:**
+```
+python python/decision.py --algorithm ID3 --dataset dataset/golf.txt
+```
+
+**Enable Random Forest:**
+```
+python python/decision.py --random-forest --num-trees 5
+```
+
+**Print rules to console:**
+```
+python python/decision.py --dump-to-console
+```
+
+For a full list of options, see the [Running with Command-Line Arguments](#running-with-command-line-arguments) section below.
+
+# Expected Output
+
+- The script will print the algorithm being used and the time taken to build the tree.
+- By default, it will generate a Python file (e.g., `rules.py`) containing the decision rules.
+- If `--dump-to-console` is used, rules will be printed to the terminal instead of being saved to a file.
+
+See the [Output Files and Results](#output-files-and-results) section for more details.
+
+# License
+
+This repository is licensed under the MIT License - see [LICENSE](https://github.com/serengil/decision-trees-for-ml/blob/master/LICENSE) for more details.
