@@ -53,14 +53,6 @@ df = pd.read_csv("car.data"
 )
 ```
 
-# Prerequisites
-
-Install the required Python packages using the following command:
-
-```
-pip install -r requirements.txt
-```
-
 # Updates
 
 To keep yourself up-to-date you might check posts in my blog about [decision trees](https://sefiks.com/tag/decision-tree/) 
@@ -222,6 +214,31 @@ For ensemble methods (Random Forest, Gradient Boosting, Adaboost), multiple rule
 - **No output files generated:** Check that `dump_to_console = False` in the script
 - **Wrong predictions:** Ensure your feature vector matches the dataset column order
 - **Import errors:** Make sure the generated rules file is in your Python path
+
+# Running with Command-Line Arguments
+
+You can now configure the script without editing the code by using command-line arguments:
+
+```
+python python/decision.py [OPTIONS]
+```
+
+**Available options:**
+- `--algorithm` (`ID3`, `C4.5`, `CART`, `Regression`) — Algorithm to use (default: `C4.5`)
+- `--dataset` — Path to dataset file (default: `dataset/golf.txt`)
+- `--random-forest` — Enable Random Forest
+- `--num-trees` — Number of trees for Random Forest (default: 3)
+- `--multitasking` — Enable multitasking for Random Forest
+- `--adaboost` — Enable Adaboost
+- `--gradient-boosting` — Enable Gradient Boosting
+- `--epochs` — Number of epochs for boosting (default: 10)
+- `--learning-rate` — Learning rate for boosting (default: 1)
+- `--dump-to-console` — Print rules to console instead of file
+
+**Example:**
+```
+python python/decision.py --algorithm ID3 --dataset dataset/golf.txt --dump-to-console
+```
 
 # Getting Started
 
