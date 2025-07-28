@@ -291,3 +291,7 @@ For a full list of options, see the [Running with Command-Line Arguments](#runni
 - If `--dump-to-console` is used, rules will be printed to the terminal instead of being saved to a file.
 
 See the [Output Files and Results](#output-files-and-results) section for more details.
+
+# License
+
+This repository is licensed under the MIT License - see [LICENSE](https://github.com/serengil/decision-trees-for-ml/blob/master/LICENSE) for more details.
