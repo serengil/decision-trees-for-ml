@@ -20,46 +20,9 @@ This is the repository of **[Decision Trees for Machine Learning](https://www.ud
 
 8- [Adaboost](https://sefiks.com/2018/11/02/a-step-by-step-adaboost-example/)
 
-Just call the [decision.py](/python/decision.py) file to run the program. You might want to change the running algorithm. You just need to set algorithm variable.
-
-```
-algorithm = "ID3" #Please set this variable to ID3, C4.5, CART or Regression
-```
-
-Moreover, you might want to apply random forest. Please set this to True in this case.
-
-```
-enableRandomForest = False
-```
-
-Furthermore, you can apply gradient boosting regression trees.
-
-```
-enableGradientBoosting = True
-```
-
-Besides, adaptive boosting is allowed to run
-
-```
-enableAdaboost = True
-```
-
-Finally, you can change the data set to build different decision trees. Just pass the file name, and its column names if it does not exist.
-
-```
-df = pd.read_csv("car.data"
-  #column names can either be defined in the source file or names parameter in read_csv command
-  ,names=["buying","maint","doors","persons","lug_boot","safety","Decision"] 
-)
-```
-
 # Updates
 
 To keep yourself up-to-date you might check posts in my blog about [decision trees](https://sefiks.com/tag/decision-tree/) 
-
-# License
-
-This repository is licensed under the MIT License - see [LICENSE](https://github.com/serengil/decision-trees-for-ml/blob/master/LICENSE) for more details.
 
 # Example Usage
 
